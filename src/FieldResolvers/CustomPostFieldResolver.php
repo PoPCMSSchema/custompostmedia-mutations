@@ -9,13 +9,13 @@ use PoP\Translation\Facades\TranslationAPIFacade;
 use PoPSchema\Media\TypeResolvers\MediaTypeResolver;
 use PoP\ComponentModel\TypeResolvers\TypeResolverInterface;
 use PoPSchema\CustomPosts\TypeResolvers\CustomPostTypeResolver;
-use PoP\ComponentModel\FieldResolvers\AbstractQueryableFieldResolver;
+use PoP\ComponentModel\FieldResolvers\AbstractDBDataFieldResolver;
 use PoPSchema\CustomPostMediaMutations\MutationResolvers\MutationInputProperties;
 use PoPSchema\CustomPosts\FieldInterfaceResolvers\IsCustomPostFieldInterfaceResolver;
 use PoPSchema\CustomPostMediaMutations\MutationResolvers\SetFeaturedImageOnCustomPostMutationResolver;
 use PoPSchema\CustomPostMediaMutations\MutationResolvers\RemoveFeaturedImageOnCustomPostMutationResolver;
 
-class CustomPostFieldResolver extends AbstractQueryableFieldResolver
+class CustomPostFieldResolver extends AbstractDBDataFieldResolver
 {
     public static function getClassesToAttachTo(): array
     {
@@ -95,11 +95,11 @@ class CustomPostFieldResolver extends AbstractQueryableFieldResolver
             $fieldName,
             $options
         );
-        $post = $resultItem;
+        $customPost = $resultItem;
         switch ($fieldName) {
             case 'setFeaturedImage':
             case 'removeFeaturedImage':
-                $fieldArgs[MutationInputProperties::CUSTOMPOST_ID] = $typeResolver->getID($post);
+                $fieldArgs[MutationInputProperties::CUSTOMPOST_ID] = $typeResolver->getID($customPost);
                 break;
         }
 

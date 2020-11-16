@@ -69,7 +69,7 @@ class RootFieldResolver extends AbstractQueryableFieldResolver
                     $setRemoveFeaturedImageSchemaFieldArgs,
                     [
                         [
-                            SchemaDefinition::ARGNAME_NAME => MutationInputProperties::FEATUREDIMAGE_ID,
+                            SchemaDefinition::ARGNAME_NAME => MutationInputProperties::MEDIA_ID,
                             SchemaDefinition::ARGNAME_TYPE => SchemaDefinition::TYPE_ID,
                             SchemaDefinition::ARGNAME_DESCRIPTION => sprintf(
                                 $translationAPI->__('The ID of the featured image, of type \'%s\'', 'custompostmedia-mutations'),

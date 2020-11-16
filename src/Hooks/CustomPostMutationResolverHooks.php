@@ -11,6 +11,7 @@ use PoP\ComponentModel\TypeResolvers\TypeResolverInterface;
 use PoPSchema\CustomPostMutations\Schema\SchemaDefinitionHelpers;
 use PoPSchema\CustomPostMediaMutations\Facades\CustomPostMediaTypeAPIFacade;
 use PoPSchema\CustomPostMediaMutations\MutationResolvers\MutationInputProperties;
+use PoPSchema\CustomPostMutations\MutationResolvers\AbstractCreateUpdateCustomPostMutationResolver;
 
 class CustomPostMutationResolverHooks extends AbstractHookSet
 {
@@ -23,7 +24,7 @@ class CustomPostMutationResolverHooks extends AbstractHookSet
             3
         );
         $this->hooksAPI->addAction(
-            'gd_createupdate_post',
+            AbstractCreateUpdateCustomPostMutationResolver::HOOK_EXECUTE_CREATE_OR_UPDATE,
             array($this, 'setOrRemoveFeaturedImage'),
             10,
             2

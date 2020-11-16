@@ -82,8 +82,9 @@ class CustomPostFieldResolver extends AbstractDBDataFieldResolver
     }
 
     /**
-     * The mutation can be validated either on the schema (`false`)
-     * on on the resultItem (`true`)
+     * Validated the mutation on the resultItem because the ID
+     * is obtained from the same object, so it's not originally
+     * present in $form_data
      */
     protected function validateMutationOnResultItem(): bool
     {

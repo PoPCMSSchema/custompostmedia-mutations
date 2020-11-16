@@ -5,59 +5,62 @@ declare(strict_types=1);
 namespace PoPSchema\CustomPostMediaMutations\Hooks;
 
 use PoP\Hooks\AbstractHookSet;
-use PoP\Translation\Facades\TranslationAPIFacade;
+use PoP\ComponentModel\Schema\SchemaDefinition;
+use PoPSchema\Media\TypeResolvers\MediaTypeResolver;
+use PoP\ComponentModel\TypeResolvers\TypeResolverInterface;
+use PoPSchema\CustomPostMutations\Schema\SchemaDefinitionHelpers;
+use PoPSchema\CustomPostMediaMutations\Facades\CustomPostMediaTypeAPIFacade;
+use PoPSchema\CustomPostMediaMutations\MutationResolvers\MutationInputProperties;
 
 class CustomPostMutationResolverHooks extends AbstractHookSet
 {
     protected function init()
     {
         $this->hooksAPI->addFilter(
-            'GD_CreateUpdate_Post:form-data',
-            array($this, 'getFormData'),
-            10
-        );
-        $this->hooksAPI->addAction(
-            'GD_CreateUpdate_Post:validatecontent',
-            array($this, 'validatecontent'),
+            SchemaDefinitionHelpers::HOOK_UPDATE_SCHEMA_FIELD_ARGS,
+            array($this, 'getSchemaFieldArgs'),
             10,
-            2
+            3
         );
         $this->hooksAPI->addAction(
             'gd_createupdate_post',
-            array($this, 'createupdate'),
+            array($this, 'setOrRemoveFeaturedImage'),
             10,
             2
         );
     }
 
-    public function validatecontent($errors_in_array, $form_data)
-    {
-        $errors = &$errors_in_array[0];
-
-        // if ($link = $form_data['link']) {
-        //     if (!isValidUrl($link)) {
-        //         $errors[] = TranslationAPIFacade::getInstance()->__('The external link has an invalid format', 'pop-addpostlinks');
-        //     }
-        // }
+    public function getSchemaFieldArgs(
+        array $fieldArgs,
+        TypeResolverInterface $typeResolver,
+        string $fieldName
+    ): array {
+        $fieldArgs[] = [
+            SchemaDefinition::ARGNAME_NAME => MutationInputProperties::FEATUREDIMAGE_ID,
+            SchemaDefinition::ARGNAME_TYPE => SchemaDefinition::TYPE_ID,
+            SchemaDefinition::ARGNAME_DESCRIPTION => sprintf(
+                $this->translationAPI->__('The ID of the featured image (of type %s)', 'custompost-mutations'),
+                MediaTypeResolver::NAME
+            ),
+        ];
+        return $fieldArgs;
     }
 
-    public function createupdate($post_id, $form_data)
+    /**
+     * If entry "featuredImageID" has an ID, set it. If it is null, remove it
+     *
+     * @param mixed $customPostID
+     * @param mixed $form_data
+     */
+    public function setOrRemoveFeaturedImage($customPostID, $form_data): void
     {
-        // // Save the link in the post meta
-        // $link = $form_data['link'];
-        // if ($link) {
-        //     \PoPSchema\CustomPostMeta\Utils::updateCustomPostMeta($post_id, GD_METAKEY_POST_LINK, $link, true);
-        // } else {
-        //     \PoPSchema\CustomPostMeta\Utils::deleteCustomPostMeta($post_id, GD_METAKEY_POST_LINK);
-        // }
-    }
-
-    public function getFormData($form_data)
-    {
-        // $moduleprocessor_manager = ModuleProcessorManagerFacade::getInstance();
-
-        // $form_data['link'] = $moduleprocessor_manager->getProcessor([PoP_AddPostLinks_Module_Processor_TextFormInputs::class, PoP_AddPostLinks_Module_Processor_TextFormInputs::MODULE_ADDPOSTLINKS_FORMINPUT_LINK])->getValue([PoP_AddPostLinks_Module_Processor_TextFormInputs::class, PoP_AddPostLinks_Module_Processor_TextFormInputs::MODULE_ADDPOSTLINKS_FORMINPUT_LINK]);
-
-        return $form_data;
+        $customPostMediaTypeAPI = CustomPostMediaTypeAPIFacade::getInstance();
+        if (isset($form_data[MutationInputProperties::FEATUREDIMAGE_ID])) {
+            if ($featuredImageID = $form_data[MutationInputProperties::FEATUREDIMAGE_ID]) {
+                $customPostMediaTypeAPI->setFeaturedImage($customPostID, $featuredImageID);
+            } else {
+                $customPostMediaTypeAPI->removeFeaturedImage($customPostID);
+            }
+        }
     }
 }

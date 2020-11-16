@@ -86,9 +86,16 @@ class CustomPostFieldResolver extends AbstractDBDataFieldResolver
      * is obtained from the same object, so it's not originally
      * present in $form_data
      */
-    protected function validateMutationOnResultItem(): bool
-    {
-        return true;
+    public function validateMutationOnResultItem(
+        TypeResolverInterface $typeResolver,
+        string $fieldName
+    ): bool {
+        switch ($fieldName) {
+            case 'setFeaturedImage':
+            case 'removeFeaturedImage':
+                return true;
+        }
+        return parent::validateMutationOnResultItem($typeResolver, $fieldName);
     }
 
     protected function getFieldArgsToExecuteMutation(

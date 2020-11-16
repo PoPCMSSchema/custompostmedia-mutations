@@ -81,19 +81,26 @@ class CustomPostFieldResolver extends AbstractDBDataFieldResolver
         return parent::getSchemaFieldArgs($typeResolver, $fieldName);
     }
 
+    /**
+     * The mutation can be validated either on the schema (`false`)
+     * on on the resultItem (`true`)
+     */
+    protected function validateMutationOnResultItem(): bool
+    {
+        return true;
+    }
+
     protected function getFieldArgsToExecuteMutation(
         array $fieldArgs,
         TypeResolverInterface $typeResolver,
         object $resultItem,
-        string $fieldName,
-        array $options = []
+        string $fieldName
     ): array {
         $fieldArgs = parent::getFieldArgsToExecuteMutation(
             $fieldArgs,
             $typeResolver,
             $resultItem,
-            $fieldName,
-            $options
+            $fieldName
         );
         $customPost = $resultItem;
         switch ($fieldName) {

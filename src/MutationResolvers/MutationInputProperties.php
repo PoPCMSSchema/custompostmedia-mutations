@@ -7,5 +7,5 @@ namespace PoPSchema\CustomPostMediaMutations\MutationResolvers;
 class MutationInputProperties
 {
     public const CUSTOMPOST_ID = 'customPostID';
-    public const MEDIA_ID = 'mediaID';
+    public const MEDIA_ITEM_ID = 'mediaItemID';
 }

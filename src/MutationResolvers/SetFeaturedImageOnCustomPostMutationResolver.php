@@ -6,7 +6,7 @@ namespace PoPSchema\CustomPostMediaMutations\MutationResolvers;
 
 use PoP\Translation\Facades\TranslationAPIFacade;
 use PoP\ComponentModel\MutationResolvers\AbstractMutationResolver;
-use PoPSchema\CustomPostMediaMutationsWP\TypeAPIs\CustomPostMediaTypeAPI;
+use PoPSchema\CustomPostMediaMutations\Facades\CustomPostMediaTypeAPIFacade;
 
 class SetFeaturedImageOnCustomPostMutationResolver extends AbstractMutationResolver
 {
@@ -17,7 +17,7 @@ class SetFeaturedImageOnCustomPostMutationResolver extends AbstractMutationResol
     {
         $customPostID = $form_data[MutationInputProperties::CUSTOMPOST_ID];
         $mediaItemID = $form_data[MutationInputProperties::MEDIA_ITEM_ID];
-        $customPostMediaTypeAPI = CustomPostMediaTypeAPI::getInstance();
+        $customPostMediaTypeAPI = CustomPostMediaTypeAPIFacade::getInstance();
         $customPostMediaTypeAPI->setFeaturedImage($customPostID, $mediaItemID);
         return $customPostID;
     }

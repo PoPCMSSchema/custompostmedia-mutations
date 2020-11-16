@@ -6,7 +6,7 @@ namespace PoPSchema\CustomPostMediaMutations\MutationResolvers;
 
 use PoP\Translation\Facades\TranslationAPIFacade;
 use PoP\ComponentModel\MutationResolvers\AbstractMutationResolver;
-use PoPSchema\CustomPostMediaMutationsWP\TypeAPIs\CustomPostMediaTypeAPI;
+use PoPSchema\CustomPostMediaMutations\Facades\CustomPostMediaTypeAPIFacade;
 
 class RemoveFeaturedImageOnCustomPostMutationResolver extends AbstractMutationResolver
 {
@@ -16,7 +16,7 @@ class RemoveFeaturedImageOnCustomPostMutationResolver extends AbstractMutationRe
     public function execute(array $form_data)
     {
         $customPostID = $form_data[MutationInputProperties::CUSTOMPOST_ID];
-        $customPostMediaTypeAPI = CustomPostMediaTypeAPI::getInstance();
+        $customPostMediaTypeAPI = CustomPostMediaTypeAPIFacade::getInstance();
         $customPostMediaTypeAPI->removeFeaturedImage($customPostID);
         return $customPostID;
     }

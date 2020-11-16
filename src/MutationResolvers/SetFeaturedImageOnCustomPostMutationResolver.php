@@ -14,8 +14,17 @@ use PoP\ComponentModel\Facades\Instances\InstanceManagerFacade;
 use PoP\ComponentModel\MutationResolvers\AbstractMutationResolver;
 use PoPSchema\CustomPostMutations\Facades\CustomPostTypeAPIFacade as MutationCustomPostTypeAPIFacade;
 
-class MediaCustomPostMutationResolver extends AbstractMutationResolver
+class SetFeaturedImageOnCustomPostMutationResolver extends AbstractMutationResolver
 {
+    /**
+     * @return mixed
+     */
+    public function execute(array $form_data)
+    {
+        return $form_data[MutationInputProperties::CUSTOMPOST_ID];
+        // return $this->update($form_data);
+    }
+
     // protected function getCategoryTaxonomy(): ?string
     // {
     //     return null;

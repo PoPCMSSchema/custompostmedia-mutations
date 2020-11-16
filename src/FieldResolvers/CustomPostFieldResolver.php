@@ -4,19 +4,16 @@ declare(strict_types=1);
 
 namespace PoPSchema\CustomPostMediaMutations\FieldResolvers;
 
-use PoP\ComponentModel\Schema\SchemaHelpers;
 use PoP\ComponentModel\Schema\SchemaDefinition;
-use PoP\ComponentModel\Schema\TypeCastingHelpers;
 use PoP\Translation\Facades\TranslationAPIFacade;
-use PoPSchema\Posts\TypeResolvers\PostTypeResolver;
 use PoPSchema\Media\TypeResolvers\MediaTypeResolver;
-use PoPSchema\CustomPosts\Enums\CustomPostStatusEnum;
 use PoP\ComponentModel\TypeResolvers\TypeResolverInterface;
-use PoP\ComponentModel\Facades\Instances\InstanceManagerFacade;
+use PoPSchema\CustomPosts\TypeResolvers\CustomPostTypeResolver;
 use PoP\ComponentModel\FieldResolvers\AbstractQueryableFieldResolver;
-use PoPSchema\PostMutations\MutationResolvers\UpdatePostMutationResolver;
-use PoPSchema\CustomPostMutations\MutationResolvers\MutationInputProperties;
+use PoPSchema\CustomPostMediaMutations\MutationResolvers\MutationInputProperties;
 use PoPSchema\CustomPosts\FieldInterfaceResolvers\IsCustomPostFieldInterfaceResolver;
+use PoPSchema\CustomPostMediaMutations\MutationResolvers\SetFeaturedImageOnCustomPostMutationResolver;
+use PoPSchema\CustomPostMediaMutations\MutationResolvers\RemoveFeaturedImageOnCustomPostMutationResolver;
 
 class CustomPostFieldResolver extends AbstractQueryableFieldResolver
 {
@@ -28,7 +25,8 @@ class CustomPostFieldResolver extends AbstractQueryableFieldResolver
     public static function getFieldNamesToResolve(): array
     {
         return [
-            'update',
+            'setFeaturedImage',
+            'removeFeaturedImage',
         ];
     }
 
@@ -36,7 +34,8 @@ class CustomPostFieldResolver extends AbstractQueryableFieldResolver
     {
         $translationAPI = TranslationAPIFacade::getInstance();
         $descriptions = [
-            'update' => $translationAPI->__('Update the post', 'custompostmedia-mutations'),
+            'setFeaturedImage' => $translationAPI->__('Set the featured image on the custom post', 'custompostmedia-mutations'),
+            'removeFeaturedImage' => $translationAPI->__('Remove the featured image on the custom post', 'custompostmedia-mutations'),
         ];
         return $descriptions[$fieldName] ?? parent::getSchemaFieldDescription($typeResolver, $fieldName);
     }
@@ -44,56 +43,38 @@ class CustomPostFieldResolver extends AbstractQueryableFieldResolver
     public function getSchemaFieldType(TypeResolverInterface $typeResolver, string $fieldName): ?string
     {
         $types = [
-            'update' => SchemaDefinition::TYPE_ID,
+            'setFeaturedImage' => SchemaDefinition::TYPE_ID,
+            'removeFeaturedImage' => SchemaDefinition::TYPE_ID,
         ];
         return $types[$fieldName] ?? parent::getSchemaFieldType($typeResolver, $fieldName);
+    }
+
+    public function isSchemaFieldResponseNonNullable(TypeResolverInterface $typeResolver, string $fieldName): bool
+    {
+        $nonNullableFieldNames = [
+            'setFeaturedImage',
+            'removeFeaturedImage',
+        ];
+        if (in_array($fieldName, $nonNullableFieldNames)) {
+            return true;
+        }
+        return parent::isSchemaFieldResponseNonNullable($typeResolver, $fieldName);
     }
 
     public function getSchemaFieldArgs(TypeResolverInterface $typeResolver, string $fieldName): array
     {
         $translationAPI = TranslationAPIFacade::getInstance();
         switch ($fieldName) {
-            case 'update':
-                $instanceManager = InstanceManagerFacade::getInstance();
-                /**
-                 * @var CustomPostStatusEnum
-                 */
-                $customPostStatusEnum = $instanceManager->getInstance(CustomPostStatusEnum::class);
+            case 'setFeaturedImage':
                 return [
                     [
-                        SchemaDefinition::ARGNAME_NAME => MutationInputProperties::TITLE,
-                        SchemaDefinition::ARGNAME_TYPE => SchemaDefinition::TYPE_STRING,
-                        SchemaDefinition::ARGNAME_DESCRIPTION => $translationAPI->__('The title of the post', 'custompostmedia-mutations'),
-                    ],
-                    [
-                        SchemaDefinition::ARGNAME_NAME => MutationInputProperties::CONTENT,
-                        SchemaDefinition::ARGNAME_TYPE => SchemaDefinition::TYPE_STRING,
-                        SchemaDefinition::ARGNAME_DESCRIPTION => $translationAPI->__('The content of the post', 'custompostmedia-mutations'),
-                    ],
-                    [
-                        SchemaDefinition::ARGNAME_NAME => MutationInputProperties::STATUS,
-                        SchemaDefinition::ARGNAME_TYPE => SchemaDefinition::TYPE_ENUM,
-                        SchemaDefinition::ARGNAME_DESCRIPTION => $translationAPI->__('The status of the post', 'custompostmedia-mutations'),
-                        SchemaDefinition::ARGNAME_ENUM_NAME => $customPostStatusEnum->getName(),
-                        SchemaDefinition::ARGNAME_ENUM_VALUES => SchemaHelpers::convertToSchemaFieldArgEnumValueDefinitions(
-                            $customPostStatusEnum->getValues()
-                        ),
-                    ],
-                    [
-                        SchemaDefinition::ARGNAME_NAME => MutationInputProperties::CATEGORIES,
-                        SchemaDefinition::ARGNAME_TYPE => TypeCastingHelpers::makeArray(SchemaDefinition::TYPE_ID),
-                        SchemaDefinition::ARGNAME_DESCRIPTION => sprintf(
-                            $translationAPI->__('The IDs of the categories (of type %s)', 'custompostmedia-mutations'),
-                            'PostCategory'// PostCategory::class
-                        ),
-                    ],
-                    [
-                        SchemaDefinition::ARGNAME_NAME => MutationInputProperties::FEATUREDIMAGE,
+                        SchemaDefinition::ARGNAME_NAME => MutationInputProperties::FEATUREDIMAGE_ID,
                         SchemaDefinition::ARGNAME_TYPE => SchemaDefinition::TYPE_ID,
                         SchemaDefinition::ARGNAME_DESCRIPTION => sprintf(
-                            $translationAPI->__('The ID of the featured image (of type %s)', 'custompostmedia-mutations'),
+                            $translationAPI->__('The ID of the featured image, of type \'%s\'', 'custompostmedia-mutations'),
                             MediaTypeResolver::NAME
                         ),
+                        SchemaDefinition::ARGNAME_MANDATORY => true,
                     ],
                 ];
         }
@@ -116,8 +97,9 @@ class CustomPostFieldResolver extends AbstractQueryableFieldResolver
         );
         $post = $resultItem;
         switch ($fieldName) {
-            case 'update':
-                $fieldArgs[MutationInputProperties::ID] = $typeResolver->getID($post);
+            case 'setFeaturedImage':
+            case 'removeFeaturedImage':
+                $fieldArgs[MutationInputProperties::CUSTOMPOST_ID] = $typeResolver->getID($post);
                 break;
         }
 
@@ -127,8 +109,10 @@ class CustomPostFieldResolver extends AbstractQueryableFieldResolver
     public function resolveFieldMutationResolverClass(TypeResolverInterface $typeResolver, string $fieldName): ?string
     {
         switch ($fieldName) {
-            case 'update':
-                return UpdatePostMutationResolver::class;
+            case 'setFeaturedImage':
+                return SetFeaturedImageOnCustomPostMutationResolver::class;
+            case 'removeFeaturedImage':
+                return RemoveFeaturedImageOnCustomPostMutationResolver::class;
         }
 
         return parent::resolveFieldMutationResolverClass($typeResolver, $fieldName);
@@ -137,8 +121,9 @@ class CustomPostFieldResolver extends AbstractQueryableFieldResolver
     public function resolveFieldTypeResolverClass(TypeResolverInterface $typeResolver, string $fieldName): ?string
     {
         switch ($fieldName) {
-            case 'update':
-                return PostTypeResolver::class;
+            case 'setFeaturedImage':
+            case 'removeFeaturedImage':
+                return CustomPostTypeResolver::class;
         }
 
         return parent::resolveFieldTypeResolverClass($typeResolver, $fieldName);

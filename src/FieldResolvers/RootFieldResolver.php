@@ -14,6 +14,7 @@ use PoP\ComponentModel\FieldResolvers\AbstractQueryableFieldResolver;
 use PoPSchema\CustomPostMediaMutations\MutationResolvers\MutationInputProperties;
 use PoPSchema\CustomPostMediaMutations\MutationResolvers\SetFeaturedImageOnCustomPostMutationResolver;
 use PoPSchema\CustomPostMediaMutations\MutationResolvers\RemoveFeaturedImageOnCustomPostMutationResolver;
+use PoP\Engine\ComponentConfiguration as EngineComponentConfiguration;
 
 class RootFieldResolver extends AbstractQueryableFieldResolver
 {
@@ -24,6 +25,9 @@ class RootFieldResolver extends AbstractQueryableFieldResolver
 
     public static function getFieldNamesToResolve(): array
     {
+        if (EngineComponentConfiguration::disableRedundantRootTypeMutationFields()) {
+            return [];
+        }
         return [
             'setFeaturedImageOnCustomPost',
             'removeFeaturedImageFromCustomPost',

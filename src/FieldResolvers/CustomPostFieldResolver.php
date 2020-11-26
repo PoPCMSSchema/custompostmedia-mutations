@@ -8,7 +8,7 @@ use PoP\ComponentModel\Schema\SchemaDefinition;
 use PoP\Translation\Facades\TranslationAPIFacade;
 use PoPSchema\Media\TypeResolvers\MediaTypeResolver;
 use PoP\ComponentModel\TypeResolvers\TypeResolverInterface;
-use PoPSchema\CustomPosts\TypeResolvers\CustomPostTypeResolver;
+use PoPSchema\CustomPosts\TypeResolvers\CustomPostUnionTypeResolver;
 use PoP\ComponentModel\FieldResolvers\AbstractDBDataFieldResolver;
 use PoPSchema\CustomPostMediaMutations\MutationResolvers\MutationInputProperties;
 use PoPSchema\CustomPosts\FieldInterfaceResolvers\IsCustomPostFieldInterfaceResolver;
@@ -138,7 +138,7 @@ class CustomPostFieldResolver extends AbstractDBDataFieldResolver
         switch ($fieldName) {
             case 'setFeaturedImage':
             case 'removeFeaturedImage':
-                return CustomPostTypeResolver::class;
+                return CustomPostUnionTypeResolver::class;
         }
 
         return parent::resolveFieldTypeResolverClass($typeResolver, $fieldName);

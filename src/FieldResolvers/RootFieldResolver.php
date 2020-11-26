@@ -9,7 +9,7 @@ use PoP\ComponentModel\Schema\SchemaDefinition;
 use PoP\Translation\Facades\TranslationAPIFacade;
 use PoPSchema\Media\TypeResolvers\MediaTypeResolver;
 use PoP\ComponentModel\TypeResolvers\TypeResolverInterface;
-use PoPSchema\CustomPosts\TypeResolvers\CustomPostTypeResolver;
+use PoPSchema\CustomPosts\TypeResolvers\CustomPostUnionTypeResolver;
 use PoP\ComponentModel\FieldResolvers\AbstractQueryableFieldResolver;
 use PoPSchema\CustomPostMediaMutations\MutationResolvers\MutationInputProperties;
 use PoPSchema\CustomPostMediaMutations\MutationResolvers\SetFeaturedImageOnCustomPostMutationResolver;
@@ -60,10 +60,7 @@ class RootFieldResolver extends AbstractQueryableFieldResolver
             [
                 SchemaDefinition::ARGNAME_NAME => MutationInputProperties::CUSTOMPOST_ID,
                 SchemaDefinition::ARGNAME_TYPE => SchemaDefinition::TYPE_ID,
-                SchemaDefinition::ARGNAME_DESCRIPTION => sprintf(
-                    $translationAPI->__('The ID of the custom post, of type \'%s\'', 'custompostmedia-mutations'),
-                    CustomPostTypeResolver::NAME
-                ),
+                SchemaDefinition::ARGNAME_DESCRIPTION => $translationAPI->__('The ID of the custom post', 'custompostmedia-mutations'),
                 SchemaDefinition::ARGNAME_MANDATORY => true,
             ],
         ];
@@ -106,7 +103,7 @@ class RootFieldResolver extends AbstractQueryableFieldResolver
         switch ($fieldName) {
             case 'setFeaturedImageOnCustomPost':
             case 'removeFeaturedImageFromCustomPost':
-                return CustomPostTypeResolver::class;
+                return CustomPostUnionTypeResolver::class;
         }
 
         return parent::resolveFieldTypeResolverClass($typeResolver, $fieldName);
